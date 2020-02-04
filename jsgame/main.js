@@ -38,13 +38,14 @@ class Movable {
 	onMouseUp(e) {
 		if (this.index >= 0)
 		{
-			this.list[this.index].x = e.clientX - this.x + this.list[this.index].x;
+			/*this.list[this.index].x = e.clientX - this.x + this.list[this.index].x;
 			this.list[this.index].y = e.clientY - this.y + this.list[this.index].y;
 			this.list[this.index].element.style.transform = "translate(" +
-				this.list[this.index].x +"px," + this.list[this.index].y +"px)";
+				this.list[this.index].x +"px," + this.list[this.index].y +"px)";*/
 			this.index = -1;
 		}
 	}
 }
 
-let movable = new Movable();
+//let movable = new Movable();
+new Movable();
