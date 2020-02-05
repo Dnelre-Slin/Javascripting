@@ -1,6 +1,6 @@
 class Movable {
-	constructor() {
-		let elems = document.getElementsByClassName("movable");
+	constructor(className = "movable") {
+		let elems = document.getElementsByClassName(className);
 		this.list = [];
 		for (let i = 0; i < elems.length; i++) {
 			this.list[i] = {};
@@ -24,26 +24,36 @@ class Movable {
 	}
 
 	onMouseMove(e) {
-		if (this.index >= 0)
-		{
-			this.list[this.index].x = e.clientX - this.x + this.list[this.index].x;
-			this.list[this.index].y = e.clientY - this.y + this.list[this.index].y;
-			this.list[this.index].element.style.transform = "translate(" +
-				this.list[this.index].x +"px," + this.list[this.index].y +"px)";
-			this.x = e.clientX;
-			this.y = e.clientY;
-		}
+		this._moveElement(e.clientX, e.clientY);
 	}
 
 	onMouseUp(e) {
 		if (this.index >= 0)
 		{
-			/*this.list[this.index].x = e.clientX - this.x + this.list[this.index].x;
-			this.list[this.index].y = e.clientY - this.y + this.list[this.index].y;
-			this.list[this.index].element.style.transform = "translate(" +
-				this.list[this.index].x +"px," + this.list[this.index].y +"px)";*/
 			this.index = -1;
 		}
+	}
+
+	// Private:
+	_moveElement(newX, newY) {
+		if (this.index >= 0)
+		{
+			this.list[this.index].x = newX - this.x + this.list[this.index].x;
+			this.list[this.index].y = newY - this.y + this.list[this.index].y;
+			this.list[this.index].element.style.transform = "translate(" +
+				this.list[this.index].x +"px," + this.list[this.index].y +"px)";
+			this.x = newX;
+			this.y = newY;
+		}
+	}
+
+	_projectOntoLine(p1x, p1y, p2x, p2y, x, y)
+	{
+		
+	}
+
+	_dotProduct(x1, y1, x2, y2) {
+		return x1*x2 + y1*y2;
 	}
 }
 
