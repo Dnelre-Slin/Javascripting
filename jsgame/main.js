@@ -20,18 +20,12 @@ class Movable {
 		this.offsetY = 0;
 		this.index = -1;
 
-		// this.centerX = 50;
-		// this.centerY = 50;
-
 		document.addEventListener("mousemove", e => this.onMouseMove(e));
 		document.addEventListener("mouseup", e => this.onMouseUp(e));
 	}
 
 	onMouseDown(e, i) {
 		e.preventDefault();
-		// let coords = this._getCoords(i, e.clientX, e.clientY);
-		// this.x = coords.x;
-		// this.y = coords.y;
 		this.offsetX = e.offsetX;
 		this.offsetY = e.offsetY;
 		this.index = i;
@@ -67,18 +61,10 @@ class Movable {
 	}
 
 	_moveElement(x, y) {
-		// this.list[this.index].x += x - this.x;
-		// this.list[this.index].y += y - this.y;
 		this.list[this.index].x = x;
 		this.list[this.index].y = y;
 		let res = this._constrain(this.index);
-		// this.list[this.index].x = res.x;
-		// this.list[this.index].y = res.y;
-		// this.x = x;
-		// this.y = y;
 		this._setTranslate(this.index, this.list[this.index].x, this.list[this.index].y);
-		// this.list[this.index].element.style.transform = "translate(" +
-		// 	this.list[this.index].x +"px," + this.list[this.index].y +"px)";
 	}
 
 	_constrain(i) {
@@ -98,46 +84,7 @@ class Movable {
 		}
 	}
 
-	// _constrain(x, y) {
-	// 	if (this.list[i].constraints.isX) {
-	// 		if (x < this.list[i].constraints.xTop) {
-	// 			x = this.list[i].constraints.xTop;
-	// 		} else if (x > this.list[i].constraints.xBot) {
-	// 			x = this.list[i].constraints.xBot;
-	// 		}
-	// 	}
-	// 	if (this.list[i].constraints.isY) {
-	// 		if (y < this.list[i].constraints.yTop) {
-	// 			y = this.list[i].constraints.yTop;
-	// 		} else if (y > this.list[i].constraints.yBot) {
-	// 			y = this.list[i].constraints.yBot;
-	// 		}
-	// 	}
-	// 	res = {};
-	// 	res.x = x;
-	// 	res.y = y;
-	// 	return res;
-	// }
-	//
-	// _constrainV(vec) {
-	// 	return this._constrain(vec.x, vec.y);
-	// }
-
 	_setTranslate(i, x, y) {
-		// if (this.list[i].constraints.isX) {
-		// 	if (x < this.list[i].constraints.xTop) {
-		// 		x = this.list[i].constraints.xTop;
-		// 	} else if (x > this.list[i].constraints.xBot) {
-		// 		x = this.list[i].constraints.xBot;
-		// 	}
-		// }
-		// if (this.list[i].constraints.isY) {
-		// 	if (y < this.list[i].constraints.yTop) {
-		// 		y = this.list[i].constraints.yTop;
-		// 	} else if (y > this.list[i].constraints.yBot) {
-		// 		y = this.list[i].constraints.yBot;
-		// 	}
-		// }
 		this.list[i].element.style.transform = "translate(" + x +"px," + y +"px)";
 	}
 
@@ -194,6 +141,90 @@ class MovableConstrained extends Movable {
 	}
 }
 
+class MovablePinned extends MovableConstrained {
+	constructor() {
+		super();
+		for (let i = 0; i < this.list.length; i++) {
+			this.list[i].start = {};
+			this.list[i].start.x = 0;
+			this.list[i].start.y = 0;
+			this.list[i].end = {};
+			this.list[i].end.x = 0;
+			this.list[i].end.y = 0;
+			this.list[i].snapRadius = 0;
+			this.list[i].endCallback = () => {};
+			this._setTransitionEndCallback(this.list[i].element, i);
+		}
+	}
+
+	definePins(index, x1, y1, x2, y2, snapRadius, endCallback = () => {}) {
+		this.list[index].start.x = x1;
+		this.list[index].start.y = y1;
+		this.list[index].end.x = x2;
+		this.list[index].end.y = y2;
+		this.list[index].snapRadius = snapRadius;
+		this.list[index].endCallback = endCallback;
+		this.defineLine(index, x1, y1, x2, y2);
+		this.setConstraints(index, true, true, x1, y1, x2, y2);
+	}
+
+	onMouseUp(e) {
+		if (this.index >= 0) {
+			this.list[this.index].element.style.transition = "transform 0.5s";
+			// console.log(this.list[this.index].element.style);
+			let start = this.list[this.index].start;
+			let x = this.list[this.index].x;
+			let y = this.list[this.index].y;
+			// console.log(`eEvent: clientX=${e.clientX} clientY=${e.clientY} offsetX=${e.offsetX} offsetY=${e.offsetY}`);
+
+			if (this._withinSnapRadius(	start.x, start.y, x, y,
+										this.list[this.index].snapRadius)) {
+				this._moveElement(start.x, start.y);
+			} else {
+				this._moveElement(this.list[this.index].end.x, this.list[this.index].end.y);
+			}
+			// this.list[this.index].element.style.transition = "none";
+			this.index = -1;
+		}
+	}
+
+	_getElements() {
+		return document.getElementsByClassName("movablePinned");
+	}
+
+	_withinSnapRadius(x1, y1, x2, y2, snapRadius) {
+		console.log(`Pos: x1=${x1} x2=${x2} y1=${y1} y2=${y2}`);
+		let dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+		console.log("dist: " + dist);
+		if (dist < snapRadius) {
+			return true;
+		}
+		return false;
+	}
+
+	_transEndCallback(i) {
+		this.list[i].element.style.transition = "none";
+		if (this.list[i].end.x === this.list[i].x && this.list[i].end.y === this.list[i].y) {
+			console.log("Moved to end!");
+			this.list[i].endCallback();
+		} else {
+			console.log("Moved to start...");
+		}
+	}
+
+	_setTransitionEndCallback(elem, index) {
+		let tEndNames = [
+			'webkitTransitionEnd',
+			'transitionend',
+			'oTransitionEnd otransitionend'
+		]
+
+		for (var name in tEndNames) {
+			elem.addEventListener(tEndNames[name], () => this._transEndCallback(index), false);
+		}
+	}
+}
+
 function doProj(p1x, p1y, p2x, p2y, x, y)
 {
 	let t = Math.atan2(p2y-p1y, p2x-p1x);
@@ -214,10 +245,18 @@ function projTiny(e)
 		projC.x +"px," + projC.y +"px)";
 }
 
+function testCB() {
+	console.log("Test of callback!!! ");
+}
+
 document.addEventListener("mousemove", e => projTiny(e));
 
 //let movable = new Movable();
-new Movable();
-let mc = new MovableConstrained();
-mc.defineLine(0, 150, 20, 150, 200);
-mc.setConstraints(0, true, true, 150, 20, 150, 200);
+
+// new Movable();
+// let mc = new MovableConstrained();
+// mc.defineLine(0, 150, 20, 150, 200);
+// mc.setConstraints(0, true, true, 150, 20, 150, 200);
+
+let mp = new MovablePinned();
+mp.definePins(0, 150, 20, 150, 200, 90, () => testCB());
