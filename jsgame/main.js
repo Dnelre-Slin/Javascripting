@@ -16,8 +16,8 @@ class Movable {
 			this.list[i].constraints.yTop = 0;
 			this.list[i].constraints.yBot = 0;
 		}
-		this.x = 0;
-		this.y = 0;
+		this.offsetX = 0;
+		this.offsetY = 0;
 		this.index = -1;
 
 		// this.centerX = 50;
@@ -28,15 +28,19 @@ class Movable {
 	}
 
 	onMouseDown(e, i) {
-		let coords = this._getCoords(i, e.clientX, e.clientY);
-		this.x = coords.x;
-		this.y = coords.y;
+		e.preventDefault();
+		// let coords = this._getCoords(i, e.clientX, e.clientY);
+		// this.x = coords.x;
+		// this.y = coords.y;
+		this.offsetX = e.offsetX;
+		this.offsetY = e.offsetY;
 		this.index = i;
 	}
 
 	onMouseMove(e) {
 		if (this.index >= 0) {
-			let coords = this._getCoords(this.index, e.clientX, e.clientY);
+			e.preventDefault();
+			let coords = this._getCoords(this.index, e.clientX - this.offsetX, e.clientY - this.offsetY);
 			this._moveElement(coords.x, coords.y);
 		}
 	}
@@ -63,30 +67,77 @@ class Movable {
 	}
 
 	_moveElement(x, y) {
-		this.list[this.index].x += x - this.x;
-		this.list[this.index].y += y - this.y;
-		this.x = x;
-		this.y = y;
+		// this.list[this.index].x += x - this.x;
+		// this.list[this.index].y += y - this.y;
+		this.list[this.index].x = x;
+		this.list[this.index].y = y;
+		let res = this._constrain(this.index);
+		// this.list[this.index].x = res.x;
+		// this.list[this.index].y = res.y;
+		// this.x = x;
+		// this.y = y;
 		this._setTranslate(this.index, this.list[this.index].x, this.list[this.index].y);
 		// this.list[this.index].element.style.transform = "translate(" +
 		// 	this.list[this.index].x +"px," + this.list[this.index].y +"px)";
 	}
 
-	_setTranslate(i, x, y) {
+	_constrain(i) {
 		if (this.list[i].constraints.isX) {
-			if (x < this.list[i].constraints.xTop) {
-				x = this.list[i].constraints.xTop;
-			} else if (x > this.list[i].constraints.xBot) {
-				x = this.list[i].constraints.xBot;
+			if (this.list[this.index].x < this.list[i].constraints.xTop) {
+				this.list[this.index].x = this.list[i].constraints.xTop;
+			} else if (this.list[this.index].x > this.list[i].constraints.xBot) {
+				this.list[this.index].x = this.list[i].constraints.xBot;
 			}
 		}
 		if (this.list[i].constraints.isY) {
-			if (y < this.list[i].constraints.yTop) {
-				y = this.list[i].constraints.yTop;
-			} else if (y > this.list[i].constraints.yBot) {
-				y = this.list[i].constraints.yBot;
+			if (this.list[this.index].y < this.list[i].constraints.yTop) {
+				this.list[this.index].y = this.list[i].constraints.yTop;
+			} else if (this.list[this.index].y > this.list[i].constraints.yBot) {
+				this.list[this.index].y = this.list[i].constraints.yBot;
 			}
 		}
+	}
+
+	// _constrain(x, y) {
+	// 	if (this.list[i].constraints.isX) {
+	// 		if (x < this.list[i].constraints.xTop) {
+	// 			x = this.list[i].constraints.xTop;
+	// 		} else if (x > this.list[i].constraints.xBot) {
+	// 			x = this.list[i].constraints.xBot;
+	// 		}
+	// 	}
+	// 	if (this.list[i].constraints.isY) {
+	// 		if (y < this.list[i].constraints.yTop) {
+	// 			y = this.list[i].constraints.yTop;
+	// 		} else if (y > this.list[i].constraints.yBot) {
+	// 			y = this.list[i].constraints.yBot;
+	// 		}
+	// 	}
+	// 	res = {};
+	// 	res.x = x;
+	// 	res.y = y;
+	// 	return res;
+	// }
+	//
+	// _constrainV(vec) {
+	// 	return this._constrain(vec.x, vec.y);
+	// }
+
+	_setTranslate(i, x, y) {
+		// if (this.list[i].constraints.isX) {
+		// 	if (x < this.list[i].constraints.xTop) {
+		// 		x = this.list[i].constraints.xTop;
+		// 	} else if (x > this.list[i].constraints.xBot) {
+		// 		x = this.list[i].constraints.xBot;
+		// 	}
+		// }
+		// if (this.list[i].constraints.isY) {
+		// 	if (y < this.list[i].constraints.yTop) {
+		// 		y = this.list[i].constraints.yTop;
+		// 	} else if (y > this.list[i].constraints.yBot) {
+		// 		y = this.list[i].constraints.yBot;
+		// 	}
+		// }
 		this.list[i].element.style.transform = "translate(" + x +"px," + y +"px)";
 	}
 
